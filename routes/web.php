@@ -1,85 +1,41 @@
 <?php
 
-use App\Models\Job;
+use App\Http\Controllers\JobController;
+use App\Http\Controllers\RegisteredUserController;
+use App\Http\Controllers\SessionController;
+use App\Mail\JobPosted;
 use Illuminate\Support\Facades\Route;
+
 # La estructura es darle una uri, luego, cuando visiten esa uri se activara la funcion que queramos
-Route::get('/', function () {
-    return view('home');
-});
+Route::view('/', 'home');
+/*Route::controller(JobController::class)->group(function () {
+    Route::get('/jobs', 'index');
+    Route::get('jobs/create',  'create');
+    Route::get('/jobs/{job}', 'show');
+    Route::post('/jobs', 'store');
+    Route::get('/jobs/{job}/edit', 'edit');
+    Route::patch('/jobs/{job}', 'update');
+    Route::delete('/jobs/{job}', 'destroy');
+});*/
+//Route::resource('jobs', JobController::class)->middleware('auth');
 
-# Esto es para retornar un json automaticamente :D
-#Route::get('/about', function () {
-#   return ['foo' => 'bar', 'hola' => 'mundo'];
-#});
-
-// index
-Route::get('/jobs', function () {
-    $jobs = Job::with('employer')->latest()->simplePaginate(3);
-    return view('jobs.index',
-        [
-            'jobs' => $jobs
-        ]
-    );
-});
-
-//create
-Route::get('jobs/create', function () {
-    return view('jobs.create');
-});
-
-//show a job
-Route::get('/jobs/{id}', function ($id){
-    $job = Job::find($id);
-    return view('jobs.show', ['job' => $job]);
-});
-
-// job forms
-Route::post('/jobs', function () {
-    request()->validate([
-        'title' => ['required', 'min:3'],
-        'salary' => ['required'],
-    ]);
-    Job::create([
-        'title' => request('title'),
-        'salary' => request('salary'),
-        'employer_id' => 1
-    ]);
-    return redirect('/jobs');
-});
+Route::get('/jobs', [JobController::class, 'index']);
+Route::get('jobs/create', [JobController::class,'create'])->middleware('auth');
+Route::get('/jobs/{job}', [JobController::class,'show']);
+Route::post('/jobs', [JobController::class,'store']);
+Route::get('/jobs/{job}/edit', [JobController::class,'edit'])
+    ->middleware('auth')
+    ->can('edit', 'job');
+Route::patch('/jobs/{job}', [JobController::class, 'update']);
+Route::delete('/jobs/{job}', [JobController::class, 'destroy']);
 
 
-// edit a job
-Route::get('/jobs/{id}/edit', function ($id){
-    $job = Job::find($id);
-    return view('jobs.edit', ['job' => $job]);
-});
-
-// update a job
-Route::patch('/jobs/{id}', function ($id){
-    // validate
-    request()->validate([
-        'title' => ['required', 'min:3'],
-        'salary' => ['required'],
-    ]);
-    // authorize
-    // update
-    $job = Job::findOrFail($id);
-    $job->update([
-        'title' => request('title'),
-        'salary' => request('salary'),
-    ]);
-    // redirect
-    return redirect('/jobs/' . $job->id);
-});
+Route::view('/contact', 'contact');
+// Auth
+Route::get('/register', [RegisteredUserController::class, 'create']);
+Route::post('/register', [RegisteredUserController::class, 'store']);
 
 
-// delete a job
-Route::delete('/jobs/{id}', function ($id){
-    Job::findOrFail($id)->delete();
-    return redirect('/jobs');
-});
-
-Route::get('/contact', function () {
-    return view('contact');
-});
-
+Route::get('/login', [SessionController::class, 'create'])->name('login');
+Route::post('/login', [SessionController::class, 'store']);
+Route::post('/logout', [SessionController::class, 'destroy']);

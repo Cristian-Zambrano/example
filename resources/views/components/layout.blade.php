@@ -26,14 +26,16 @@
                 </div>
                 <div class="hidden md:block">
                     <div class="ml-4 flex items-center md:ml-6">
-                        <!-- Profile dropdown -->
-                        <el-dropdown class="relative ml-3">
-                            <button class="relative flex max-w-xs items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                                <span class="absolute -inset-1.5"></span>
-                                <span class="sr-only">Open user menu</span>
-                                <img src="https://assets.laracasts.com/images/mascot/larypeek.svg" alt="" class="size-8 rounded-full outline -outline-offset-1 outline-white/10" />
-                            </button>
-                        </el-dropdown>
+                        @guest
+                            <x-nav-link href="/login" :active="request()->is('login')">Login</x-nav-link>
+                            <x-nav-link href="/register" :active="request()->is('register')">Register</x-nav-link>
+                        @endguest
+                        @auth
+                                <form method="POST" action="/logout">
+                                    @csrf
+                                    <x-form-button>Log Out</x-form-button>
+                                </form>
+                        @endauth
                     </div>
                 <div class="-mr-2 flex md:hidden">
                     <!-- Mobile menu button -->
