@@ -3,7 +3,9 @@
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
+use App\Jobs\TranslateJob;
 use App\Mail\JobPosted;
+use App\Models\Job;
 use Illuminate\Support\Facades\Route;
 
 # La estructura es darle una uri, luego, cuando visiten esa uri se activara la funcion que queramos
@@ -18,6 +20,12 @@ Route::view('/', 'home');
     Route::delete('/jobs/{job}', 'destroy');
 });*/
 //Route::resource('jobs', JobController::class)->middleware('auth');
+
+Route::get('test', function () {
+    $job = Job::first();
+   TranslateJob::dispatch($job);
+   return 'DONE';
+});
 
 Route::get('/jobs', [JobController::class, 'index']);
 Route::get('jobs/create', [JobController::class,'create'])->middleware('auth');
